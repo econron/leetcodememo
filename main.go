@@ -138,7 +138,82 @@ func minSteps(N, M int) int {
 	return -1
 }
 
+// bfs的にmergeTreeを解く
+/**
+ * Definition for a binary tree node.
+ * type TreeNode struct {
+ * Val int
+ * Left *TreeNode
+ * Right *TreeNode
+ * }
+ */
+type TreeNode struct {
+    Val int
+    Left *TreeNode
+    Right *TreeNode
+}
+func mergeTreesbyBFS(root1 *TreeNode, root2 *TreeNode) *TreeNode {
+    // 例外処理: どちらかが空なら、もう片方を返すだけで終わり
+    if root1 == nil {
+        return root2
+    }
+    if root2 == nil {
+        return root1
+    }
 
+    // キューの定義 (スライスとして定義します)
+    // root1をベースにして、そこにroot2の値を足していく戦略です
+    queue1 := []*TreeNode{root1}
+    queue2 := []*TreeNode{root2}
+
+    for len(queue1) > 0 {
+        // Pop (先頭を取り出す)
+        node1 := queue1[0]
+        queue1 = queue1[1:]
+        
+        node2 := queue2[0]
+        queue2 = queue2[1:]
+
+        // 値を足し合わせる (node1を更新)
+        node1.Val += node2.Val
+
+        // --- 左の子ノードの処理 ---
+        if node1.Left == nil && node2.Left != nil {
+            // node1になく、node2にある -> node2のサブツリーをそのまま移植
+            node1.Left = node2.Left
+        } else if node1.Left != nil && node2.Left != nil {
+            // 両方にある -> 加算処理が必要なのでキューに追加して後で処理
+            queue1 = append(queue1, node1.Left)
+            queue2 = append(queue2, node2.Left)
+        }
+        // (注: node1にあってnode2にない場合は、何もしなくてOK)
+        // つまるところnode1に寄せていく
+
+        // --- 右の子ノードの処理 ---
+        if node1.Right == nil && node2.Right != nil {
+            node1.Right = node2.Right
+        } else if node1.Right != nil && node2.Right != nil {
+            queue1 = append(queue1, node1.Right)
+            queue2 = append(queue2, node2.Right)
+        }
+    }
+
+    return root1
+}
+
+func mergeTreesbyDFS(root1 *TreeNode, root2 *TreeNode) *TreeNode {
+    if root1 == nil {
+        return root2
+    }
+    if root2 == nil {
+        return root1
+    }
+    root1.Val += root2.Val
+    root1.Left = mergeTreesbyDFS(root1.Left, root2.Left)
+    root1.Right = mergeTreesbyDFS(root1.Right, root2.Right)
+    
+    return root1
+}
 
 func main() {
 	fmt.Println(minSteps(5, 17))
