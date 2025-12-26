@@ -215,6 +215,89 @@ func mergeTreesbyDFS(root1 *TreeNode, root2 *TreeNode) *TreeNode {
     return root1
 }
 
+func hasPathSum(root *TreeNode, targetSum int) bool {
+    if root == nil {
+        return false
+    }
+    // ベースケース：両方の葉がもうない
+    if root.Left == nil && root.Right == nil {
+        return root.Val == targetSum
+    }
+    newSum := targetSum - root.Val
+    return hasPathSum(root.Left, newSum) || hasPathSum(root.Right, newSum)
+}
+
+type Minheap struct {
+    nodes []int
+}
+
+func (h *Minheap) parentIndex(i int) int {
+    return (i - 1)/2
+}
+
+func (h *Minheap) leftIndex(i int) int {
+    return 2*i + 1
+}
+
+func (h *Minheap) rightIndex(i int) int {
+    return 2*i + 2
+}
+
+func (h *Minheap) Add(num int) {
+    h.nodes = append(h.nodes, num)
+    h.upHeap(len(h.nodes)-1)
+}
+
+func (h *Minheap) upHeap(i int) {
+    for i > 0 {
+        p := h.parentIndex(i)
+        if h.nodes[p] > h.nodes[i] {
+            h.nodes[i], h.nodes[p] = h.nodes[p], h.nodes[i]
+            i = p
+        } else {
+            break
+        }
+    }
+}
+
+func (h *Minheap) Pop(num int) int {
+    h.nodes = append(h.nodes, num)
+    h.nodes[0], h.nodes[len(h.nodes)-1] = h.nodes[len(h.nodes)-1], h.nodes[0]
+    h.downHeap(0)
+    return h.nodes[0]
+}
+
+func (h *Minheap) downHeap(i int) {
+    for i <= len(h.nodes) - 1 {
+        left := h.leftIndex(i)
+        right := h.rightIndex(i)
+        smallest := i
+        if right < len(h.nodes) && h.nodes[right] < h.nodes[i] {
+            smallest = right
+        }
+        if left < len(h.nodes) && h.nodes[left] < h.nodes[i] {
+            smallest = left
+        }
+        if smallest == i {
+            break
+        }
+        h.nodes[i], h.nodes[smallest] = h.nodes[smallest], h.nodes[i]
+        i = smallest
+    }
+}
+
+func twoSum(nums []int, target int) []int {
+    visited := make(map[int]int)
+    for i,num := range nums {
+        diff := target - num
+        if idx, ok := visited[diff]; ok {
+            return []int{idx,i}
+        }
+        visited[num] = i
+    }
+    return nil
+}
+
 func main() {
 	fmt.Println(minSteps(5, 17))
 }
